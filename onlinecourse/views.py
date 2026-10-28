@@ -64,7 +64,7 @@ def course_details(request, course_id):
     context = {}
     course = get_object_or_404(Course, pk=course_id)
     context['course'] = course
-    return render(request, 'onlinecourse/course_detail_bootstrap.html', context)
+    return render(request, 'onlinecourse/course_details_bootstrap.html', context)
 
 
 def enroll(request, course_id):
@@ -104,16 +104,19 @@ def show_exam_result(request, course_id, submission_id):
     course = get_object_or_404(Course, pk=course_id)
     submission = get_object_or_404(Submission, pk=submission_id)
     choices = submission.choices.all()
+    selected_ids = []
+    for c in choices:
+        selected_ids.append(c.id)
     total_score = 0
     questions = Question.objects.filter(course=course)
     for question in questions:
-        selected_ids = [c.id for c in choices if c.question == question]
         total_score += question.is_get_score(selected_ids)
     possible_score = sum([q.grade for q in questions])
     context['course'] = course
     context['submission'] = submission
     context['choices'] = choices
-    context['grade'] = int(total_score / possible_score * 100) if possible_score > 0 else 0
+    context['selected_ids'] = selected_ids
+    context['grade'] = int((total_score / possible_score) * 100) if possible_score > 0 else 0
     context['total_score'] = total_score
     context['possible_score'] = possible_score
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)

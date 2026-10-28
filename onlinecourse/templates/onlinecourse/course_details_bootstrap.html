@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <meta charset="UTF-8">
+    <title>{{ course.name }}</title>
 </head>
 <body>
     <nav class="navbar navbar-light bg-light">
@@ -38,6 +39,7 @@
     </nav>
     <div class="container-fluid">
         <h2>{{ course.name }}</h2>
+        <p>{{ course.description }}</p>
         <div class="card-columns-vertical">
             {% for lesson in course.lesson_set.all %}
             <div class="card mt-1">
@@ -51,10 +53,10 @@
         <button class="btn btn-primary btn-block" data-toggle="collapse" data-target="#exam">Start Exam</button>
         <div id="exam" class="collapse">
             <form id="questionform" action="submit/" method="post">
+                {% csrf_token %}
                 {% for question in course.question_set.all %}
                 <div class="card mt-1">
                     <div class="card-header"><h5>{{ question.question_text }}</h5></div>
-                    {% csrf_token %}
                     <div class="form-group">
                         {% for choice in question.choice_set.all %}
                         <div class="form-check">
