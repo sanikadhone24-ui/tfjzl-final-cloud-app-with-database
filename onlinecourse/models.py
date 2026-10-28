@@ -1,155 +1,112 @@
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
 
 class Course(models.Model):
-    name = models.CharField(
-        max_length=30,
-        default='online course'
-    )
-    description = models.CharField(
-        max_length=255,
-        default='online course description'
-    )
+    name = models.CharField(max_length=30, default='online course')
+    description = models.CharField(max_length=255, default='online course description')
+    pub_date = models.DateField(null=True)
+    total_enrollment = models.IntegerField(default=0)
+    image = models.ImageField(upload_to='course_images/', null=True, blank=True)
+    instructors = models.ManyToManyField('Instructor')
+    users = models.ManyToManyField(User, through='Enrollment')
 
     def __str__(self):
-        return "Name: " + self.name
+        return "Name: " + self.name + "," + "Description: " + self.description
 
 
 class Lesson(models.Model):
-    title = models.CharField(
-        max_length=200,
-        default='lesson'
-    )
-    content = models.TextField(
-        default='lesson content'
-    )
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE
-    )
+    title = models.CharField(max_length=200, default='title')
+    order = models.IntegerField(default=0)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    content = models.TextField()
 
     def __str__(self):
-        return "Title: " + self.title
+        return self.title
+
+
+class Instructor(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    full_time = models.BooleanField(default=True)
+    total_learners = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.user.username
+
+
+class Learner(models.Model):
+    STUDENT = 'student'
+    DEVELOPER = 'developer'
+    DATA_SCIENTIST = 'data_scientist'
+    DATABASE_ADMIN = 'dba'
+    OCCUPATION_CHOICES = [
+        (STUDENT, 'Student'),
+        (DEVELOPER, 'Developer'),
+        (DATA_SCIENTIST, 'Data Scientist'),
+        (DATABASE_ADMIN, 'Database Admin')
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    occupation = models.CharField(
+        max_length=20,
+        choices=OCCUPATION_CHOICES,
+        default=STUDENT
+    )
+    social_link = models.URLField(max_length=200)
+
+    def __str__(self):
+        return self.user.username + "," + self.occupation
 
 
 class Enrollment(models.Model):
     AUDIT = 'audit'
     HONOR = 'honor'
-    BETA = 'beta'
-
-    ENROLLMENT_CHOICES = [
+    BETA = 'BETA'
+    COURSE_MODES = [
         (AUDIT, 'Audit'),
         (HONOR, 'Honor'),
-        (BETA, 'Beta'),
+        (BETA, 'BETA')
     ]
-
-    enroll_user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE
-    )
-    enroll_mode = models.CharField(
-        max_length=5,
-        choices=ENROLLMENT_CHOICES,
-        default=AUDIT
-    )
-    enroll_date = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    class Meta:
-        unique_together = ('enroll_user', 'course')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    date_enrolled = models.DateField(default=timezone.now)
+    mode = models.CharField(max_length=5, choices=COURSE_MODES, default=AUDIT)
+    rating = models.FloatField(default=5.0)
 
     def __str__(self):
-        return (
-            "Enrollment: "
-            + self.enroll_user.username
-            + " - "
-            + self.course.name
-        )
+        return self.user.username + "," + self.course.name
 
 
 class Question(models.Model):
-    question_text = models.CharField(
-        max_length=200,
-        default='question'
-    )
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE
-    )
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    question_text = models.CharField(max_length=200)
+    grade = models.IntegerField(default=1)
 
     def __str__(self):
-        return "Question: " + self.question_text
+        return self.question_text
 
-    def get_choices(self):
-        return Choice.objects.filter(question=self)
+    def is_get_score(self, selected_ids):
+        all_answers = self.choice_set.filter(is_correct=True).count()
+        selected_correct = self.choice_set.filter(is_correct=True, id__in=selected_ids).count()
+        if all_answers == selected_correct:
+            return self.grade
+        else:
+            return 0
 
 
 class Choice(models.Model):
-    question = models.ForeignKey(
-        Question,
-        on_delete=models.CASCADE
-    )
-    choice_text = models.CharField(
-        max_length=200,
-        default='choice'
-    )
-    is_correct = models.BooleanField(
-        default=False
-    )
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_text = models.CharField(max_length=200)
+    is_correct = models.BooleanField(default=False)
 
     def __str__(self):
-        return (
-            "Choice: "
-            + self.choice_text
-            + " (Question: "
-            + self.question.question_text
-            + ")"
-        )
+        return self.choice_text
 
 
 class Submission(models.Model):
-    enroll = models.ForeignKey(
-        Enrollment,
-        on_delete=models.CASCADE
-    )
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
     choices = models.ManyToManyField(Choice)
-    submit_time = models.DateTimeField(
-        default=timezone.now
-    )
+    submission_time = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return (
-            "Submission: "
-            + str(self.pk)
-            + " (Enrollment: "
-            + str(self.enroll.id)
-            + ")"
-        )
-
-    def get_total_questions(self):
-        return Question.objects.filter(
-            course=self.enroll.course
-        ).count()
-
-    def get_correct_answers(self):
-        return self.choices.filter(
-            is_correct=True
-        ).count()
-
-    def get_score(self):
-        total_questions = self.get_total_questions()
-
-        if total_questions == 0:
-            return 0
-
-        return int(
-            self.get_correct_answers() * 100 / total_questions
-        )
+        return "Submission: " + str(self.pk) + " (Enrollment: " + str(self.enrollment.id) + ")"

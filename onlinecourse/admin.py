@@ -1,57 +1,38 @@
-
 from django.contrib import admin
-from .models import (
-    Instructor,
-    Learner,
-    Course,
-    Lesson,
-    Enrollment,
-    Question,
-    Choice,
-    Submission,
-)
-
-
-class LessonInline(admin.StackedInline):
-    model = Lesson
-    extra = 1
+from .models import Course, Lesson, Instructor, Learner, Question, Choice, Submission
 
 
 class ChoiceInline(admin.StackedInline):
     model = Choice
-    extra = 1
+    extra = 2
 
 
-class CourseAdmin(admin.ModelAdmin):
-    list_display = ("name", "description", "total_enrollment")
-    search_fields = ("name", "description")
-    inlines = [LessonInline]
+class QuestionInline(admin.StackedInline):
+    model = Question
+    extra = 2
 
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ("title", "course", "order")
-    list_filter = ("course",)
-    search_fields = ("title",)
+    list_display = ['title', 'course', 'order']
+    inlines = [QuestionInline]
+
+
+class CourseAdmin(admin.ModelAdmin):
+    inlines = [LessonInline]
+    list_display = ('name', 'pub_date')
+    list_filter = ['pub_date']
+    search_fields = ['name', 'description']
 
 
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ("question_text", "lesson", "grade")
-    list_filter = ("lesson",)
-    search_fields = ("question_text",)
     inlines = [ChoiceInline]
+    list_display = ['question_text', 'course', 'grade']
 
 
-class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "enrollment", "submission_time")
-    list_filter = ("submission_time",)
-    search_fields = ("enrollment__user__username",)
-
-
-admin.site.register(Instructor)
-admin.site.register(Learner)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Lesson, LessonAdmin)
-admin.site.register(Enrollment)
+admin.site.register(Instructor)
+admin.site.register(Learner)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Choice)
-admin.site.register(Submission, SubmissionAdmin)
+admin.site.register(Submission)
