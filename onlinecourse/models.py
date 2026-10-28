@@ -109,4 +109,4 @@ class Submission(models.Model):
     submission_time = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return "Submission: " + str(self.id) + "," + str(self.enrollment.id)
+        return "Submission: " + str(self.id) + " for enrollment " + str(self.enrollment.id)
