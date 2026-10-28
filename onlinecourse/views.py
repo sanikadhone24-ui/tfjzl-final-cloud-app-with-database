@@ -85,8 +85,7 @@ def submit(request, course_id):
     submission = Submission.objects.create(enrollment=enrollment)
     choices = extract_answers(request)
     submission.choices.set(choices)
-    submission_id = submission.id
-    return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course_id, submission_id)))
+    return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course_id, submission.id)))
 
 
 def extract_answers(request):

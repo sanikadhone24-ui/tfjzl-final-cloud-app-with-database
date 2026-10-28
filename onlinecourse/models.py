@@ -83,7 +83,7 @@ class Question(models.Model):
     grade = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.question_text
+        return "Question: " + self.question_text
 
     def is_get_score(self, selected_ids):
         all_answers = self.choice_set.filter(is_correct=True).count()
@@ -96,11 +96,11 @@ class Question(models.Model):
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice_text = models.CharField(max_length=200)
+    choice_text = models.CharField(max_length=100)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.choice_text
+        return "Choice: " + self.choice_text
 
 
 class Submission(models.Model):
@@ -109,4 +109,4 @@ class Submission(models.Model):
     submission_time = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return "Submission: " + str(self.pk) + " (Enrollment: " + str(self.enrollment.id) + ")"
+        return "Submission: " + str(self.id) + "," + str(self.enrollment.id)

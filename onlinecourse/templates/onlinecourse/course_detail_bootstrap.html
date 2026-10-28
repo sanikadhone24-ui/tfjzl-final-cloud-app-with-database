@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     {% load static %}
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Details</title>
+    <meta charset="UTF-8">
 </head>
-
 <body>
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
@@ -29,7 +26,7 @@
                         {% csrf_token %}
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="Username" name="username" >
-                            <input type="password" class="form-control" placeholder="Username" name="psw" >
+                            <input type="password" class="form-control" placeholder="Password" name="psw" >
                             <button class="btn btn-primary" type="submit">Login</button>
                             <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
                         </div>
@@ -39,15 +36,14 @@
             </ul>
         </div>
     </nav>
-
     <div class="container-fluid">
         <h2>{{ course.name }}</h2>
         <div class="card-columns-vertical">
             {% for lesson in course.lesson_set.all %}
-                <div class="card mt-1">
-                    <div class="card-header"><h5>Lesson {{lesson.order}}: {{lesson.title}}</h5></div>
-                    <div class="card-body">{{lesson.content}}</div>
-                </div>
+            <div class="card mt-1">
+                <div class="card-header"><h5>Lesson {{ lesson.order }}: {{ lesson.title }}</h5></div>
+                <div class="card-body">{{ lesson.content }}</div>
+            </div>
             {% endfor %}
         </div>
         {% if user.is_authenticated %}
@@ -57,13 +53,13 @@
             <form id="questionform" action="submit/" method="post">
                 {% for question in course.question_set.all %}
                 <div class="card mt-1">
-                    <div class="card-header"><h5>{{ question.question_text}}</h5></div>
+                    <div class="card-header"><h5>{{ question.question_text }}</h5></div>
                     {% csrf_token %}
                     <div class="form-group">
                         {% for choice in question.choice_set.all %}
                         <div class="form-check">
                             <label class="form-check-label">
-                                <input type="checkbox" name="choice{{choice.id}}" class="form-check-input" id="{{choice.id}}" value="{{choice.id}}">{{ choice.choice_text }}
+                                <input type="checkbox" name="choice{{ choice.id }}" class="form-check-input" id="{{ choice.id }}" value="{{ choice.id }}">{{ choice.choice_text }}
                             </label>
                         </div>
                         {% endfor %}
